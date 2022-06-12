@@ -1,5 +1,6 @@
 const fs = require('fs');
 const express = require('express');
+const { fail } = require('assert');
 
 // Setting up a simple server with Express
 const app = express();
@@ -36,6 +37,30 @@ app.get('/api/v1/tours', (req, res) => {
     results: tours.length,
     data: {
       tours,
+    },
+  });
+});
+
+// Responding to URL parameters
+app.get('/api/v1/tours/:id', (req, res) => {
+  // req.params will return an object with the parameters specified /:param
+  // Converting to a number
+  const id = +req.params.id;
+  const tour = tours.find((el) => el.id === id);
+
+  // Simple error handling
+  if (!tour) {
+    return res.status(404).json({
+      status: fail,
+      message: 'Invalid ID',
+    });
+  }
+
+  // Return the tour if found
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
     },
   });
 });
