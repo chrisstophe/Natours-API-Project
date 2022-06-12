@@ -90,6 +90,39 @@ app.post('/api/v1/tours', (req, res) => {
   );
 });
 
+// Handling PATCH requests
+app.patch('/api/v1/tours/:id', (req, res) => {
+  // Simple error handling
+  if (+req.params.id > tours.length) {
+    return res.status(404).json({
+      status: fail,
+      message: 'Invalid ID',
+    });
+  }
+  // Not actually implementing updating the tour
+  res.status(200).json({
+    status: 'success',
+    data: { tour: 'Updated tour here' },
+  });
+});
+
+// Handling DELETE requests
+app.delete('/api/v1/tours/:id', (req, res) => {
+  // Simple error handling
+  if (+req.params.id > tours.length) {
+    return res.status(404).json({
+      status: fail,
+      message: 'Invalid ID',
+    });
+  }
+  // Not actually implementing deleting the tour
+  // Status 204 means no content
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
 const port = 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}....`);
