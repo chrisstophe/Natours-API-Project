@@ -8,29 +8,14 @@ const app = express();
 // We need middleware, more details later
 app.use(express.json());
 
-// Quick Express Demo
-// Defining routes in Express
-// Specify the HTTP method and the URL
-// app.get('/', (req, res) => {
-//   // Easily specify the status with Express
-//   // Using the .json() method automatically sets the content type to JSON with Express
-//   res
-//     .status(200)
-//     .json({ message: 'Hello from the server side!', app: 'Natours' });
-// });
-
-// app.post('/', (req, res) => {
-//   res.send('You can post to this endpoint...');
-// });
-
 // Top level code is only executed once so it's better to read files once
 // Read tours data from file and parse it into a JSON object
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-// Handling GET requests
-app.get('/api/v1/tours', (req, res) => {
+// Route Handler functions
+const getAllTours = (req, res) => {
   res.status(200).json({
     // Format the response using JSend
     status: 'success',
@@ -39,10 +24,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
-// Responding to URL parameters
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   // req.params will return an object with the parameters specified /:param
   // Converting to a number
   const id = +req.params.id;
@@ -63,10 +47,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tour,
     },
   });
-});
+};
 
-// Handling POST requests
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   //   "Creating" and ID for the new tour
   const newId = tours[tours.length - 1].id + 1;
   // Adding the ID to the tour
@@ -88,10 +71,9 @@ app.post('/api/v1/tours', (req, res) => {
       });
     }
   );
-});
+};
 
-// Handling PATCH requests
-app.patch('/api/v1/tours/:id', (req, res) => {
+const updateTour = (req, res) => {
   // Simple error handling
   if (+req.params.id > tours.length) {
     return res.status(404).json({
@@ -104,10 +86,9 @@ app.patch('/api/v1/tours/:id', (req, res) => {
     status: 'success',
     data: { tour: 'Updated tour here' },
   });
-});
+};
 
-// Handling DELETE requests
-app.delete('/api/v1/tours/:id', (req, res) => {
+const deleteTour = (req, res) => {
   // Simple error handling
   if (+req.params.id > tours.length) {
     return res.status(404).json({
@@ -121,7 +102,28 @@ app.delete('/api/v1/tours/:id', (req, res) => {
     status: 'success',
     data: null,
   });
-});
+};
+
+// // Handling GET requests
+// app.get('/api/v1/tours', getAllTours);
+// // Responding to URL parameters
+// app.get('/api/v1/tours/:id', getTour);
+// // Handling POST requests
+// app.post('/api/v1/tours', createTour);
+// // Handling PATCH requests
+// app.patch('/api/v1/tours/:id', updateTour);
+// // Handling DELETE requests
+// app.delete('/api/v1/tours/:id', deleteTour);
+
+// Handling GET and POST requests
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+// Handling GET specific tour, PATCH, and DELETE requests
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 const port = 3000;
 app.listen(port, () => {
