@@ -1,12 +1,26 @@
 const fs = require('fs');
 const express = require('express');
 const { fail } = require('assert');
+const morgan = require('morgan');
 
 // Setting up a simple server with Express
 const app = express();
 
-// We need middleware, more details later
+///////////////////////////////////////////////////////////////////////////////
+// Middleware Stack
+app.use(morgan('dev'));
+
 app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log('HELLO FROM THE MIDDLEWARE');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
 
 // Top level code is only executed once so it's better to read files once
 // Read tours data from file and parse it into a JSON object
@@ -14,11 +28,13 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
+///////////////////////////////////////////////////////////////////////////////
 // Route Handler functions
 const getAllTours = (req, res) => {
   res.status(200).json({
     // Format the response using JSend
     status: 'success',
+    requestedAt: req.requestTime,
     results: tours.length,
     data: {
       tours,
@@ -104,17 +120,7 @@ const deleteTour = (req, res) => {
   });
 };
 
-// // Handling GET requests
-// app.get('/api/v1/tours', getAllTours);
-// // Responding to URL parameters
-// app.get('/api/v1/tours/:id', getTour);
-// // Handling POST requests
-// app.post('/api/v1/tours', createTour);
-// // Handling PATCH requests
-// app.patch('/api/v1/tours/:id', updateTour);
-// // Handling DELETE requests
-// app.delete('/api/v1/tours/:id', deleteTour);
-
+///////////////////////////////////////////////////////////////////////////////
 // Handling GET and POST requests
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
@@ -125,6 +131,8 @@ app
   .patch(updateTour)
   .delete(deleteTour);
 
+///////////////////////////////////////////////////////////////////////////////
+// Start Server
 const port = 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}....`);
