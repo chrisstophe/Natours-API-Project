@@ -6,6 +6,31 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
 
+// Middleware checking if ID exists
+exports.checkID = (req, res, next, val) => {
+  console.log(`Tour ID is ${val}`);
+  if (+req.params.id > tours.length) {
+    // Simple error handling
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  next();
+};
+
+// Middleware checking if body is valid
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    // Simple error handling
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Missing name or price',
+    });
+  }
+  next();
+};
+
 ///////////////////////////////////////////////////////////////////
 // Route Handler functions aka Controllers
 exports.getAllTours = (req, res) => {
@@ -25,14 +50,6 @@ exports.getTour = (req, res) => {
   // Converting to a number
   const id = +req.params.id;
   const tour = tours.find((el) => el.id === id);
-
-  // Simple error handling
-  if (!tour) {
-    return res.status(404).json({
-      status: fail,
-      message: 'Invalid ID',
-    });
-  }
 
   // Return the tour if found
   res.status(200).json({
@@ -68,13 +85,6 @@ exports.createTour = (req, res) => {
 };
 
 exports.updateTour = (req, res) => {
-  // Simple error handling
-  if (+req.params.id > tours.length) {
-    return res.status(404).json({
-      status: fail,
-      message: 'Invalid ID',
-    });
-  }
   // Not actually implementing updating the tour
   res.status(200).json({
     status: 'success',
@@ -83,13 +93,6 @@ exports.updateTour = (req, res) => {
 };
 
 exports.deleteTour = (req, res) => {
-  // Simple error handling
-  if (+req.params.id > tours.length) {
-    return res.status(404).json({
-      status: fail,
-      message: 'Invalid ID',
-    });
-  }
   // Not actually implementing deleting the tour
   // Status 204 means no content
   res.status(204).json({
