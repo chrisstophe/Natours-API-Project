@@ -9,10 +9,14 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 ///////////////////////////////////////////////////////////////////////////////
-// Middleware Stack
-app.use(morgan('dev'));
-
+// MIDDLEWARE STACK
+// Only log when in dev mode
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 app.use(express.json());
+// Middleware to serve static files
+app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
   console.log('HELLO FROM THE MIDDLEWARE');
