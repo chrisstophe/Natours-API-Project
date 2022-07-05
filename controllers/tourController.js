@@ -8,6 +8,7 @@ exports.getAllTours = async (req, res) => {
     console.log(req.query);
 
     // BUILD THE QUERY
+    ////////////////////////////////
     // 1A) Filtering
     // Destructure then create a new object to create a copy of the query object
     const queryObj = { ...req.query };
@@ -24,7 +25,8 @@ exports.getAllTours = async (req, res) => {
     // Filtering by passing in an object
     let query = Tour.find(JSON.parse(queryStr));
 
-    // 3) Sorting
+    ////////////////////////////////
+    // 2) Sorting
     // If a sort field was originally passed in, chain the .sort() method back onto the query
     if (req.query.sort) {
       const sortBy = req.query.sort.split(',').join(' ');
@@ -33,6 +35,18 @@ exports.getAllTours = async (req, res) => {
     // Adding a default sort field if none are specified
     else {
       query = query.sort('-createdAt');
+    }
+
+    ////////////////////////////////
+    // 3) Field Limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    }
+    // Adding a default fields to return
+    else {
+      // Remove the __v added by mongoose using a minus
+      query = query.select('-__v');
     }
 
     // ACTUALLY EXECUTE THE QUERY
