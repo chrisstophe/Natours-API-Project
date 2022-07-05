@@ -4,9 +4,36 @@ const Tour = require('./../models/tourModel');
 // Route Handler functions aka Controllers
 exports.getAllTours = async (req, res) => {
   try {
-    // Model.find( ) with nothing passed in will return all Tour documents found
-    const tours = await Tour.find();
+    console.log(req.query);
 
+    // BUILD THE QUERY
+    // 1) Filtering
+    // Destructure then create a new object to create a copy of the query object
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    // Remove excluded fields from query object
+    excludedFields.forEach((field) => delete queryObj[field]);
+
+    //2) Advanced Filtering
+    // Using a RegExp to add a $ in front of gte, gt, lte, lt
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+    // Model.find( ) with nothing passed in will return all Tour documents found
+    // Filtering by passing in an object
+    const query = Tour.find(JSON.parse(queryStr));
+
+    // ACTUALLY EXECUTE THE QUERY
+    const tours = await query;
+
+    // ALTERNTIVELY: Filtering using mongoose methods
+    // const query = Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // SEND RESPONSE
     res.status(200).json({
       // Format the response using JSend
       status: 'success',
