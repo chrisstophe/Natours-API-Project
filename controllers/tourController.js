@@ -1,3 +1,4 @@
+const { listenerCount } = require('../app');
 const Tour = require('./../models/tourModel');
 
 ///////////////////////////////////////////////////////////////////
@@ -7,21 +8,32 @@ exports.getAllTours = async (req, res) => {
     console.log(req.query);
 
     // BUILD THE QUERY
-    // 1) Filtering
+    // 1A) Filtering
     // Destructure then create a new object to create a copy of the query object
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     // Remove excluded fields from query object
     excludedFields.forEach((field) => delete queryObj[field]);
 
-    //2) Advanced Filtering
+    // 1B) Advanced Filtering
     // Using a RegExp to add a $ in front of gte, gt, lte, lt
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     // Model.find( ) with nothing passed in will return all Tour documents found
     // Filtering by passing in an object
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // 3) Sorting
+    // If a sort field was originally passed in, chain the .sort() method back onto the query
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    }
+    // Adding a default sort field if none are specified
+    else {
+      query = query.sort('-createdAt');
+    }
 
     // ACTUALLY EXECUTE THE QUERY
     const tours = await query;
