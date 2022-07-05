@@ -5,8 +5,6 @@ const Tour = require('./../models/tourModel');
 // Route Handler functions aka Controllers
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
-
     // BUILD THE QUERY
     ////////////////////////////////
     // 1A) Filtering
@@ -49,15 +47,24 @@ exports.getAllTours = async (req, res) => {
       query = query.select('-__v');
     }
 
+    ////////////////////////////////
+    // 4) Pagination
+    // Set a default page of 1
+    const page = +req.query.page || 1;
+    //Set a default limit of 100
+    const limit = +req.query.limit || 100;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    // Throw an error if use requests a page that does not exist
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
+
     // ACTUALLY EXECUTE THE QUERY
     const tours = await query;
-
-    // ALTERNTIVELY: Filtering using mongoose methods
-    // const query = Tour.find()
-    //   .where('duration')
-    //   .equals(5)
-    //   .where('difficulty')
-    //   .equals('easy');
 
     // SEND RESPONSE
     res.status(200).json({
