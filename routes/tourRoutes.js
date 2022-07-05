@@ -11,7 +11,7 @@ const router = express.Router();
 router
   .route('/')
   .get(tourController.getAllTours)
-  .post(tourController.checkBody, tourController.createTour);
+  .post(tourController.createTour);
 
 // Handling GET specific tour, PATCH, and DELETE requests for tours
 router
