@@ -1,5 +1,6 @@
 const { listenerCount } = require('../app');
 const Tour = require('./../models/tourModel');
+const APIFeatures = require('./../utils/apiFeatures');
 
 ///////////////////////////////////////////////////////////////////
 // Route Handler functions aka Controllers
@@ -16,66 +17,13 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
-    // BUILD THE QUERY
-    ////////////////////////////////
-    // 1A) Filtering
-    // Destructure then create a new object to create a copy of the query object
-    const queryObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    // Remove excluded fields from query object
-    excludedFields.forEach((field) => delete queryObj[field]);
-
-    // 1B) Advanced Filtering
-    // Using a RegExp to add a $ in front of gte, gt, lte, lt
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    // Model.find( ) with nothing passed in will return all Tour documents found
-    // Filtering by passing in an object
-    let query = Tour.find(JSON.parse(queryStr));
-
-    ////////////////////////////////
-    // 2) Sorting
-    // If a sort field was originally passed in, chain the .sort() method back onto the query
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    }
-    // Adding a default sort field if none are specified
-    else {
-      query = query.sort('-createdAt');
-    }
-
-    ////////////////////////////////
-    // 3) Field Limiting
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    }
-    // Adding a default fields to return
-    else {
-      // Remove the __v field added by mongoose using a minus
-      query = query.select('-__v');
-    }
-
-    ////////////////////////////////
-    // 4) Pagination
-    // Set a default page of 1
-    const page = +req.query.page || 1;
-    //Set a default limit of 100
-    const limit = +req.query.limit || 100;
-    const skip = (page - 1) * limit;
-
-    query = query.skip(skip).limit(limit);
-
-    // Throw an error if user requests a page that does not exist
-    if (req.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (skip >= numTours) throw new Error('This page does not exist');
-    }
-
     // ACTUALLY EXECUTE THE QUERY
-    const tours = await query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const tours = await features.query;
 
     // SEND RESPONSE
     res.status(200).json({
