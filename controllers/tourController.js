@@ -3,6 +3,17 @@ const Tour = require('./../models/tourModel');
 
 ///////////////////////////////////////////////////////////////////
 // Route Handler functions aka Controllers
+
+// Middleware to pre-fill the query object
+// This middleweare is called from the popular top-5-cheap router
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  // Remember we always have to call next on middleware functions
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     // BUILD THE QUERY
@@ -43,7 +54,7 @@ exports.getAllTours = async (req, res) => {
     }
     // Adding a default fields to return
     else {
-      // Remove the __v added by mongoose using a minus
+      // Remove the __v field added by mongoose using a minus
       query = query.select('-__v');
     }
 
@@ -57,7 +68,7 @@ exports.getAllTours = async (req, res) => {
 
     query = query.skip(skip).limit(limit);
 
-    // Throw an error if use requests a page that does not exist
+    // Throw an error if user requests a page that does not exist
     if (req.query.page) {
       const numTours = await Tour.countDocuments();
       if (skip >= numTours) throw new Error('This page does not exist');

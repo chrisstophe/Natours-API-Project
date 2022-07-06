@@ -7,6 +7,11 @@ const router = express.Router();
 // Param Middleware
 // router.param('id', tourController.checkID);
 
+// Adding an alias router for tours
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getAllTours);
+
 // Handling GET and POST requests for tours
 router
   .route('/')
