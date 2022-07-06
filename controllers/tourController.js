@@ -92,7 +92,7 @@ exports.updateTour = async (req, res) => {
     const tour = await Tour.findByIdAndUpdate(id, body, {
       // Setting new: true returns the modified document rather than the original
       new: true,
-      ranValidators: true,
+      runValidators: true,
     });
 
     res.status(200).json({
