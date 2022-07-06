@@ -124,7 +124,7 @@ exports.deleteTour = async (req, res) => {
   }
 };
 
-// Aggregation pipeline
+// Aggregation pipeline to get tour stats
 exports.getTourStats = async (req, res) => {
   try {
     const stats = await Tour.aggregate([
@@ -148,14 +148,64 @@ exports.getTourStats = async (req, res) => {
       {
         $sort: { avgPrice: 1 },
       },
-      // At this stage, the _id is the $difficulty
-      // {
-      //   $match: { _id: { $ne: 'EASY' } },
-      // },
     ]);
     res.status(200).json({
       status: 'success',
       data: { stats },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+// Aggregation pipeline to calculate the busiest month of the year by calculating how many tours start in each month of a year
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = +req.params.year;
+    const plan = await Tour.aggregate([
+      { $unwind: '$startDates' },
+      // Selecting the dates in the input year
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      // Grouping by month, counting the number of tours that start in that month, and adding their names to an array
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      // Add a month field
+      {
+        $addFields: { month: '$_id' },
+      },
+      // Remove the _id field
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      // Sort by number of tours starting in a month
+      {
+        $sort: { numTourStarts: -1 },
+      },
+      // Limit the number of documents output
+      {
+        $limit: 12,
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: { plan },
     });
   } catch (err) {
     res.status(404).json({
