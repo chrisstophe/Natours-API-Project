@@ -101,7 +101,15 @@ tourSchema.pre(/^find/, function (next) {
 tourSchema.post(/^find/, function (docs, next) {
   // Here, we have access to documents that were returned by the query
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
-  console.log(docs);
+  next();
+});
+
+// Aggregation middleware to exclude secret tours from aggregations
+tourSchema.pre('aggregate', function (next) {
+  // Here, the this keyword refers to the aggregation object
+  // Add a stage to the pipeline to remove secret tours
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
   next();
 });
 
