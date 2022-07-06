@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 // Creating a Tour Schema
-const tourScehma = new mongoose.Schema(
+const tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -9,6 +10,7 @@ const tourScehma = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration'],
@@ -58,11 +60,31 @@ const tourScehma = new mongoose.Schema(
 );
 
 // Virtual property to calculate weeks out of months
-tourScehma.virtual('durationWeeks').get(function () {
+tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Document Middleware runs before .save() and .create() but not insertMany()
+tourSchema.pre('save', function (next) {
+  // The this keyword points to the document currently being processed (saved)
+  // Adding a slug field by slugifying the document name
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// tourSchema.pre('save', function (next) {
+//   console.log('Will save document');
+//   next();
+// });
+
+// // Document Middleware runs after .save() and .create() but not insertMany()
+// // We don't have the this keyword here, we have access to the saved document
+// tourSchema.post('save', function (doc, next) {
+//   console.log(doc);
+//   next();
+// });
+
 // Creating a Tour Model
-const Tour = mongoose.model('Tour', tourScehma);
+const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;
