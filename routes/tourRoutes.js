@@ -12,6 +12,9 @@ router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours);
 
+// Route for tour stats that calls the aggregation pipeline
+router.route('/tour-stats').get(tourController.getTourStats);
+
 // Handling GET and POST requests for tours
 router
   .route('/')
