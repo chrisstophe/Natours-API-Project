@@ -6,6 +6,15 @@ const handleCastErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+// Handling duplicate DB field errors from mongoDB
+const handleDuplicateFieldsDB = (err) => {
+  // Extract the error field name and value
+  const field = Object.keys(err.keyValue)[0];
+  const value = Object.values(err.keyValue)[0];
+  const message = `Duplicate field: ${field} with value: ${value}. Please use another value`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -17,7 +26,6 @@ const sendErrorDev = (err, res) => {
 
 const sendErrorProd = (err, res) => {
   // Operational trust error: send message to client
-  console.log(err.isOperational);
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -48,9 +56,10 @@ module.exports = (err, req, res, next) => {
   } else if (process.env.NODE_ENV === 'production') {
     // Creating a copy of the error object
     let error = Object.create(err);
-    if (error.name === 'CastError') {
-      error = handleCastErrorDB(err);
-    }
+    // Handling invalid DB field errors
+    if (error.name === 'CastError') error = handleCastErrorDB(error);
+    // Handling duplicate DB field errors
+    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     sendErrorProd(error, res);
   }
 };
