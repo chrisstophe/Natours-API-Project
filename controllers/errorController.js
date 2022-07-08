@@ -1,3 +1,11 @@
+const AppError = require('./../utils/appError');
+
+// Handling cast error for invalid DB IDs or other fields from mongoose
+const handleCastErrorDB = (err) => {
+  const message = `Invalid ${err.path}: ${err.value}`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -9,6 +17,7 @@ const sendErrorDev = (err, res) => {
 
 const sendErrorProd = (err, res) => {
   // Operational trust error: send message to client
+  console.log(err.isOperational);
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -34,9 +43,14 @@ module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
-  } else if (process.env.NODE_ENV !== 'production') {
-    sendErrorProd(err, res);
+  } else if (process.env.NODE_ENV === 'production') {
+    // Creating a copy of the error object
+    let error = Object.create(err);
+    if (error.name === 'CastError') {
+      error = handleCastErrorDB(err);
+    }
+    sendErrorProd(error, res);
   }
 };
