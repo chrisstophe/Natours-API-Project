@@ -1,9 +1,14 @@
 const express = require('express');
 const userController = require('./../controllers/userController');
+const authController = require('./../controllers/authController');
 
 ///////////////////////////////////////////////////////////////////
 //Routes
 const router = express.Router();
+
+// User Authentication Routes
+// Handling the signup route
+router.post('/signup', authController.signup);
 
 // Handling GET and POST requests for users
 router
