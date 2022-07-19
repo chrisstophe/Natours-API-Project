@@ -9,6 +9,8 @@ const router = express.Router();
 // User Authentication Routes
 // Handling the signup route
 router.post('/signup', authController.signup);
+// Handling the login route
+router.post('/login', authController.login);
 
 // Handling GET and POST requests for users
 router
