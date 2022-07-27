@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     type: 'string',
     required: [true, 'Please confirm your password'],
     validate: {
-      // This ONLY works on CREATE and SAVE!!
+      // This ONLY works on CREATE and SAVE!! Not on findByIdAndUpdate()
       validator: function (val) {
         // Confirm password matches
         return val === this.password;
