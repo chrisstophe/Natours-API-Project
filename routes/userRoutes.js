@@ -18,6 +18,7 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+router.patch('/updateMe', authController.protect, userController.updateMe);
 
 // Handling GET and POST requests for users
 router
