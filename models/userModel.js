@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: 'boolean',
+    default: true,
+    select: false,
+  },
 });
 
 // Middleware to encrypt passwords
@@ -67,6 +72,13 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// Query middleware that runs before find queries
+userSchema.pre(/^find/, function (next) {
+  // The this keyword points to the current query
+  this.find({ active: { $ne: false } });
   next();
 });
 
