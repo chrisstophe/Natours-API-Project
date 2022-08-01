@@ -2,6 +2,7 @@ const express = require('express');
 const { fail } = require('assert');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -13,6 +14,10 @@ const app = express();
 
 ///////////////////////////////////////////////////////////////////////////////
 // GLOBAL MIDDLEWARE STACK
+
+// Setting Security HTTP Headers
+app.use(helmet());
+
 // Only log when in dev mode
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -27,10 +32,13 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-app.use(express.json());
+// Body parser: reading data from body into req.body
+app.use(express.json({ limit: '10kb' }));
+
 // Middleware to serve static files
 app.use(express.static(`${__dirname}/public`));
 
+// Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
