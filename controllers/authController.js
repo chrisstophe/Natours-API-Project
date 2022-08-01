@@ -15,6 +15,22 @@ const signToken = (id) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    // Cookie cannot be accessed or modified by the browser
+    httpOnly: true,
+  };
+
+  // Cookie only sent on encrypted (HTTPS) connection. We only want this in Production mode
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove password from the output before sending response to client.
+  // This isn't persisted since we don't save to DB.
+  user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',
