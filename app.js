@@ -10,6 +10,7 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const hpp = require('hpp');
 
 // Setting up a simple server with Express
 const app = express();
@@ -42,6 +43,20 @@ app.use(mongoSanitize());
 
 // Data sanitization against XSS (cross-site scripting) attacks
 app.use(xss());
+
+// Prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  })
+);
 
 // Middleware to serve static files
 app.use(express.static(`${__dirname}/public`));

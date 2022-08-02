@@ -32,6 +32,7 @@ class APIFeatures {
     // 2) Sorting
     // If a sort field was originally passed in, chain the .sort() method back onto the query
     if (this.queryString.sort) {
+      console.log(this.queryString.sort);
       const sortBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
     }
